@@ -1,0 +1,44 @@
+#!/bin/sh
+
+RSYNC_OPTS="--partial --progress -avpz"
+
+if [ "$1" = "-h" ]; then
+  cat <<EOF
+Usage: cfrsync APP-NAME @:source target
+       cfrsync APP-NAME source @:target
+(replace @ to remote-host)
+EOF
+  exit 0
+fi
+
+if [ $# -eq 0 ]; then cf apps; exit 0; fi
+if [ "$1" = "-n" ]; then NOEXEC=1; shift; fi
+
+CF_ID=$(cf app $1 --guid)
+if test $? -ne 0; then exit 1; fi
+
+CF_EP=$(cf curl /v2/info|tr -d '",'|awk '/app_ssh_endpoint/ {print $2}') 
+
+# echo $CF_ID
+# echo $CF_EP
+
+SSH_PORT=`echo $CF_EP|cut -d : -f 2`
+SSH_HOST=`echo $CF_EP|cut -d : -f 1`
+SSH_USER="cf:${CF_ID}/0"
+
+SSH_PSW=`cf ssh-code`
+echo $SSH_PSW
+
+shift
+set `echo $* | sed -e "s/@/$SSH_HOST/"`
+echo "rsync $RSYNC_OPTS -e \"ssh -p $SSH_PORT -o User=$SSH_USER\" $@"
+
+if [ -z "$NOEXEC" ]
+then
+ sshpass -p $SSH_PSW rsync $RSYNC_OPTS -e "ssh -p $SSH_PORT -o User=$SSH_USER" $@
+else
+ # sshpass -p $SSH_PSW rsync -avp -e "ssh -p $SSH_PORT -o User=$SSH_USER" $@
+ :
+fi
+
+exit $?

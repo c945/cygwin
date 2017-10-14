@@ -1,0 +1,31 @@
+#!/bin/sh
+
+if [ $# -eq 0 ]; then cf apps; exit 0; fi
+if [ "$1" = "-n" ]; then NOEXEC=1; shift; fi
+
+CF_ID=$(cf app $1 --guid)
+if test $? -ne 0; then exit 1; fi
+
+CF_EP=$(cf curl /v2/info|tr -d '",'|awk '/app_ssh_endpoint/ {print $2}') 
+
+# echo $CF_ID
+# echo $CF_EP
+
+SSH_PORT=`echo $CF_EP|cut -d : -f 2`
+SSH_HOST=`echo $CF_EP|cut -d : -f 1`
+SSH_USER="cf:${CF_ID}/0"
+
+SSH_PSW=`cf ssh-code`
+echo $SSH_PSW
+
+shift
+echo "ssh -p $SSH_PORT $SSH_USER@$SSH_HOST $@"
+if [ -z "$NOEXEC" ]
+then
+ sshpass -p $SSH_PSW ssh -p $SSH_PORT $SSH_USER@$SSH_HOST $@
+else
+ # ssh -p $SSH_PORT $SSH_USER@$SSH_HOST $@
+ :
+fi
+
+exit $?

@@ -1,0 +1,23 @@
+#!/bin/sh 
+
+if [ $# -eq 0 ]; then cf apps; exit 0; fi
+
+CF_ID=$(cf app $1 --guid)
+if test $? -ne 0; then exit 1; fi
+echo "guid: $CF_ID"
+
+CF_EP=$(cf curl /v2/info|tr -d '",'|awk '/app_ssh_endpoint/ {print $2}') 
+
+SSH_PORT=`echo $CF_EP|cut -d : -f 2`
+SSH_HOST=`echo $CF_EP|cut -d : -f 1`
+SSH_USER="cf:${CF_ID}/0"
+
+cat <<EOF
+SSH_USER: $SSH_USER
+SSH_HOST: $SSH_HOST
+SSH_PORT: $SSH_PORT
+EOF
+
+SSH_PSW=`cf ssh-code`
+echo "Password: $SSH_PSW"
+
