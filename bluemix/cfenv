@@ -16,6 +16,7 @@ cat <<EOF
 SSH_USER: $SSH_USER
 SSH_HOST: $SSH_HOST
 SSH_PORT: $SSH_PORT
+Ex: ssh -o Port=$SSH_PORT -o User=$SSH_USER $SSH_HOST
 EOF
 
 SSH_PSW=`cf ssh-code`
