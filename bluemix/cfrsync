@@ -1,6 +1,6 @@
 #!/bin/sh
 
-RSYNC_OPTS="--partial --progress -avpz"
+RSYNC_OPTS="--partial --progress --stats -avzhH"
 
 if [ "$1" = "-h" ]; then
   cat <<EOF
@@ -30,7 +30,7 @@ SSH_PSW=`cf ssh-code`
 echo $SSH_PSW
 
 shift
-set `echo $* | sed -e "s/@/$SSH_HOST/"`
+set -- `echo $* | sed -e "s/@/$SSH_HOST/"`
 echo "rsync $RSYNC_OPTS -e \"ssh -p $SSH_PORT -o User=$SSH_USER\" $@"
 
 if [ -z "$NOEXEC" ]
