@@ -2,13 +2,15 @@
 
 # get my extern IP address
 #
+# or http://checkip.amazonaws.com/
+#
 
-if [ "$1" == "" ]
+if [ "$1" = "" ]
 then
-	curl https://ipinfo.io/ip
-elif [ "$1" == "-a" ]
+	curl -s https://ipinfo.io/ip
+elif [ "$1" = "-a" ]
 then
-	curl https://ipinfo.io/
+	curl -s https://ipinfo.io/
 else
 	echo `basename $0` [-a]
 fi
