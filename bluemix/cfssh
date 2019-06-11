@@ -1,7 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ $# -eq 0 ]; then cf apps; exit 0; fi
-if [ "$1" = "-n" ]; then NOEXEC=1; shift; fi
+if [ -n "$SSH_PSW" ]; then
+ echo $SSH_PSW
+ exit 0
+fi
+export SSH_ASKPASS=$0
+export DISPLAY=:0
+
+if [ $# -eq 0 ]; then
+ cf apps
+ exit 0
+fi
 
 CF_ID=$(cf app $1 --guid)
 if test $? -ne 0; then exit 1; fi
@@ -16,16 +25,13 @@ SSH_HOST=`echo $CF_EP|cut -d : -f 1`
 SSH_USER="cf:${CF_ID}/0"
 
 SSH_PSW=`cf ssh-code`
+export SSH_PSW
 echo $SSH_PSW
 
 shift
 echo "ssh -p $SSH_PORT $SSH_USER@$SSH_HOST $@"
-if [ -z "$NOEXEC" ]
-then
- sshpass -p $SSH_PSW ssh -p $SSH_PORT  -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $SSH_USER@$SSH_HOST $@
-else
- # ssh -p $SSH_PORT $SSH_USER@$SSH_HOST $@
- :
-fi
+
+setsid ssh -p $SSH_PORT -o StrictHostKeyChecking=no -o PubkeyAuthentication=no $SSH_USER@$SSH_HOST $@
 
 exit $?
+
